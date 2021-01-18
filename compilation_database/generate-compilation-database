@@ -1,0 +1,26 @@
+#!/bin/sh
+
+PATH="$PATH:@gnused@/bin"
+
+log() {
+  COLOR='\033[1;34m' # light blue
+  NO_COLOR='\033[0m'
+  echo -e "${COLOR}$*${NO_COLOR}"
+}
+
+run() {
+  log "$@"
+  "$@"
+}
+
+log "Writing compile_commands.json..."
+# -s makes it use the original source directory instead of bazel __EXEC_ROOT__
+run @out@/bin/.generate.sh -s
+
+absolute_exec_root=$(bazel info execution_root)
+absolute_bin=$(bazel info bazel-bin)
+relative_bin=${absolute_bin##$absolute_exec_root/}
+
+log "$relative_bin"
+log "Patching virtual includes..."
+run sed -i "s|${relative_bin}/external/\([^/]*\)/_virtual_includes/\([^ ]*\)|external/\1/include|g" compile_commands.json

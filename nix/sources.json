@@ -1,0 +1,50 @@
+{
+    "bazel-compilation-database": {
+        "branch": "master",
+        "description": "Tool to generate compile_commands.json from the Bazel build system",
+        "homepage": null,
+        "owner": "grailbio",
+        "repo": "bazel-compilation-database",
+        "rev": "aa58494efdf31c3e3525832b3d44d48bb3bc2b0b",
+        "sha256": "1017gbs2d6q1kjb86y1ka6nw2wa1wcfjg5z52y0202jghxn5f168",
+        "type": "tarball",
+        "url": "https://github.com/grailbio/bazel-compilation-database/archive/aa58494efdf31c3e3525832b3d44d48bb3bc2b0b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "niv": {
+        "branch": "master",
+        "description": "Easy dependency management for Nix projects",
+        "homepage": "https://github.com/nmattia/niv",
+        "owner": "nmattia",
+        "repo": "niv",
+        "rev": "f73bf8d584148677b01859677a63191c31911eae",
+        "sha256": "0jlmrx633jvqrqlyhlzpvdrnim128gc81q5psz2lpp2af8p8q9qs",
+        "type": "tarball",
+        "url": "https://github.com/nmattia/niv/archive/f73bf8d584148677b01859677a63191c31911eae.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixpkgs": {
+        "branch": "nixos-20.09",
+        "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
+        "homepage": "https://github.com/NixOS/nixpkgs",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "58f9c4c7d3a42c912362ca68577162e38ea8edfb",
+        "sha256": "1517dy07jf4zhzknqbgm617lgjxsn7a6k1vgq61c67f6h55qs5ij",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/58f9c4c7d3a42c912362ca68577162e38ea8edfb.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "rules_cc": {
+        "branch": "master",
+        "description": "C++ Rules for Bazel",
+        "homepage": "https://bazel.build",
+        "owner": "bazelbuild",
+        "repo": "rules_cc",
+        "rev": "9ec8187d589e7554e8cfe8d14b3917ebe4b94940",
+        "sha256": "00qlyq298pp54is2w8pz7v50nfnbkshg38mg1rhqmx3da41mxdhx",
+        "type": "tarball",
+        "url": "https://github.com/bazelbuild/rules_cc/archive/9ec8187d589e7554e8cfe8d14b3917ebe4b94940.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
+}
