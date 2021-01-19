@@ -144,7 +144,7 @@ rec {
   bazelProject = lib.makeOverridable (
     { deps
     , binaries
-    , tests
+    , tests ? [ ]
 
     , compilationMode ? "opt"
     , cc ? true
@@ -246,7 +246,7 @@ rec {
     in
     pkgs.stdenvNoCC.mkDerivation (
       {
-        postConfigure = ''
+        preBuild = ''
           export HOME=/tmp
           ${symlinkDeps deps}
         '';
@@ -255,11 +255,11 @@ rec {
         buildPhase = ''
           runHook preBuild
 
-          bazel build ${ccFlags} ${lib.concatStringsSep " " binaries}
+          bazel build ${ccFlags} ${lib.concatStringsSep " " (binaries ++ tests)}
 
           runHook postBuild
         '';
-        doCheck = true;
+        doCheck = tests != [ ];
         checkPhase = ''
           runHook preCheck
 

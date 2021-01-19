@@ -1,6 +1,5 @@
 { nixpkgs ? import (import ./nix/sources.nix { }).nixpkgs }:
 let
-  sources = import ./nix/sources.nix { };
   nix2bazel = (
     nixpkgs {
       overlays = [
