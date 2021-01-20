@@ -148,7 +148,6 @@ rec {
 
     , compilationMode ? "opt"
     , cc ? true
-    , ccDebugInfo ? true
 
     , ...
     }@args:
@@ -227,7 +226,6 @@ rec {
       ]);
       ccFlags = lib.concatStringsSep " " [
         "--compilation_mode=${compilationMode}"
-        (lib.optionalString ccDebugInfo "--copt -g")
       ];
 
       labelToPath =
@@ -285,7 +283,6 @@ rec {
             "binaries"
             "tests"
             "cc"
-            "ccDebugInfo"
             "compilationMode"
           ]
       )
