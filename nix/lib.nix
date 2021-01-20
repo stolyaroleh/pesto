@@ -249,7 +249,10 @@ rec {
           ${symlinkDeps deps}
         '';
 
-        buildInputs = [ pkgs.bazel ] ++ ccBuildInputs;
+        buildInputs = [
+          pkgs.bazel
+          pkgs.jdk11_headless
+        ] ++ ccBuildInputs;
         buildPhase = ''
           runHook preBuild
 
