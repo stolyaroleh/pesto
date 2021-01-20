@@ -11,6 +11,18 @@
         "url": "https://github.com/grailbio/bazel-compilation-database/archive/aa58494efdf31c3e3525832b3d44d48bb3bc2b0b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "bazel4nixpkgs": {
+        "branch": "bazel_4",
+        "description": "Nix Packages collection",
+        "homepage": "",
+        "owner": "divanorama",
+        "repo": "nixpkgs",
+        "rev": "6a2dd6cf4688a5be5f03e34a7c86c02133f6c8a7",
+        "sha256": "09s6jjq5hl06lrmamd43k6i1ayg0fc8ajfx8kr9qh53gyzirslhf",
+        "type": "tarball",
+        "url": "https://github.com/divanorama/nixpkgs/archive/6a2dd6cf4688a5be5f03e34a7c86c02133f6c8a7.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "niv": {
         "branch": "master",
         "description": "Easy dependency management for Nix projects",
