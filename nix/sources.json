@@ -46,17 +46,5 @@
         "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs/archive/58f9c4c7d3a42c912362ca68577162e38ea8edfb.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "rules_cc": {
-        "branch": "master",
-        "description": "C++ Rules for Bazel",
-        "homepage": "https://bazel.build",
-        "owner": "bazelbuild",
-        "repo": "rules_cc",
-        "rev": "9ec8187d589e7554e8cfe8d14b3917ebe4b94940",
-        "sha256": "00qlyq298pp54is2w8pz7v50nfnbkshg38mg1rhqmx3da41mxdhx",
-        "type": "tarball",
-        "url": "https://github.com/bazelbuild/rules_cc/archive/9ec8187d589e7554e8cfe8d14b3917ebe4b94940.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

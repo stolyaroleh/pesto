@@ -3,7 +3,6 @@
 , coreutils
 , findutils
 , gnused
-, rules_cc
 , clangTidyConfig ? null
 }:
 let

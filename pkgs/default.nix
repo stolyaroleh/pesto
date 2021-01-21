@@ -4,14 +4,9 @@ let
 in
 with lib;
 rec {
-  rules_cc = wrapBazelPackage {
-    name = "rules_cc";
-    src = sources.rules_cc;
-  };
+  clang_tidy = pkgs.callPackage ../clang_tidy { };
 
-  clang_tidy = pkgs.callPackage ../clang_tidy {
-    inherit rules_cc;
-  };
+  clang_format = pkgs.callPackage ../clang_format { };
 
   backward = wrapNixPackage {
     name = "backward";
