@@ -1,9 +1,9 @@
-{ pkgs, lib }:
+self: super:
 let
-  sources = import ../nix/sources.nix { };
+  inherit (self) pkgs;
+  inherit (self.pesto.lib) wrapNixPackage;
 in
-with lib;
-rec {
+{
   clang_tidy = pkgs.callPackage ../clang_tidy { };
 
   clang_format = pkgs.callPackage ../clang_format { };
@@ -29,7 +29,7 @@ rec {
   cppkafka = wrapNixPackage {
     name = "cppkafka";
     package = pkgs.cppkafka;
-    deps = [ rdkafka ];
+    deps = [ self.rdkafka ];
     buildFile = ./cppkafka.bzl;
   };
 
@@ -55,7 +55,7 @@ rec {
     name = "grpc";
     package = pkgs.grpc;
     buildFile = ./grpc.bzl;
-    deps = [ protobuf ];
+    deps = [ self.protobuf ];
   };
 
   gtest = wrapNixPackage {
@@ -100,16 +100,10 @@ rec {
     buildFile = ./rdkafka.bzl;
   };
 
-  smkquickfix = wrapNixPackage {
-    name = "smkquickfix";
-    package = pkgs.smkquickfix;
-    buildFile = ./smkquickfix.bzl;
-  };
-
   spdlog = wrapNixPackage {
     name = "spdlog";
     package = pkgs.spdlog;
-    deps = [ fmt ];
+    deps = [ self.fmt ];
     buildFile = ./spdlog.bzl;
   };
 

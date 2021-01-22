@@ -4,13 +4,21 @@ let
   bazel = bazel4nixpkgs.bazel_4;
 in
 self: super:
-{
-  inherit bazel;
-  nix2bazel = rec {
+let
+  pkgs = (
+    super.lib.makeExtensible (_: {
+      inherit pesto;
+      inherit (self) pkgs;
+    })
+  ).extend (import ../pkgs);
+  pesto = {
     tools = {
       bazel-compdb = super.callPackage ../compilation_database { };
     };
     lib = super.callPackage ./lib.nix { };
-    pkgs = super.callPackage ../pkgs { inherit lib; };
+    inherit pkgs;
   };
+in
+{
+  inherit bazel pesto;
 }
