@@ -81,10 +81,19 @@ def _toolchain_flags(ctx):
     return flags
 
 def _safe_flags(flags):
-    # Some flags might be used by GCC, but not understood by Clang.
-    # Remove them here, to allow users to run clang-tidy, without having
-    # a clang toolchain configured (that would produce a good command line with --compiler clang)
-    return [flag for flag in flags if flag != "-fno-canonical-system-headers"]
+    return [
+        flag
+        for flag in flags
+        if flag not in (
+            # This flag might be used by GCC but not understood by clang
+            "-fno-canonical-system-headers",
+            # Bazel redefines these macros to make builds reproducible,
+            # but clang-tidy ignores -Wno-builtin-macro-redefined and errors anyways
+            '-D__DATE__="redacted"',
+            '-D__TIMESTAMP__="redacted"',
+            '-D__TIME__="redacted"',
+        )
+    ]
 
 def _clang_tidy_aspect_impl(target, ctx):
     # if not a C/C++ target, we are not interested
@@ -119,8 +128,11 @@ clang_tidy_aspect = aspect(
 def _clang_tidy_test_impl(ctx):
     files = depset(
         transitive = [
-            ctx.attr.target[OutputGroupInfo].logs,
-            ctx.attr.target[OutputGroupInfo].fixes,
+            target[OutputGroupInfo].logs
+            for target in ctx.attr.targets
+        ] + [
+            target[OutputGroupInfo].fixes
+            for target in ctx.attr.targets
         ],
     )
     ctx.actions.symlink(
@@ -133,7 +145,7 @@ def _clang_tidy_test_impl(ctx):
 clang_tidy_test = rule(
     implementation = _clang_tidy_test_impl,
     attrs = {
-        "target": attr.label(
+        "targets": attr.label_list(
             providers = [CcInfo],
             aspects = [clang_tidy_aspect],
         ),
@@ -145,10 +157,3 @@ clang_tidy_test = rule(
     },
     test = True,
 )
-
-def lint(target, name = "lint"):
-    clang_tidy_test(
-        name = name,
-        target = target,
-        size = "small",
-    )
