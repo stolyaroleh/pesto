@@ -45,6 +45,12 @@ in
     buildFile = ./date.bzl;
   };
 
+  eigen = wrapNixPackage {
+    name = "eigen";
+    package = pkgs.eigen;
+    buildFile = ./eigen.bzl;
+  };
+
   fmt = wrapNixPackage {
     name = "fmt";
     package = pkgs.fmtlib;
