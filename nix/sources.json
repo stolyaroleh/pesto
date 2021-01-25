@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "divanorama",
         "repo": "nixpkgs",
-        "rev": "6a2dd6cf4688a5be5f03e34a7c86c02133f6c8a7",
-        "sha256": "09s6jjq5hl06lrmamd43k6i1ayg0fc8ajfx8kr9qh53gyzirslhf",
+        "rev": "8ff0685ab5d4afa5254b3a84d1b0e2ae7c41ae9a",
+        "sha256": "18y7d2q23knm3srmqmd2zbx5dkxl92gdabdi2wg0cm4lflz5m3fg",
         "type": "tarball",
-        "url": "https://github.com/divanorama/nixpkgs/archive/6a2dd6cf4688a5be5f03e34a7c86c02133f6c8a7.tar.gz",
+        "url": "https://github.com/divanorama/nixpkgs/archive/8ff0685ab5d4afa5254b3a84d1b0e2ae7c41ae9a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
