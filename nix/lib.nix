@@ -1,7 +1,4 @@
-{ pkgs }:
-let
-  lib = pkgs.lib;
-in
+{ lib, pkgs, bazel, openjdk11_headless, stdenv }:
 rec {
   # Combine a Nix package with a BUILD file describing its contents,
   # to use with https://docs.bazel.build/versions/master/be/workspace.html#local_repository.
@@ -197,7 +194,7 @@ rec {
           (name: builtins.any (suffix: lib.hasSuffix suffix name) suffices)
           (getFiles dir);
 
-      cc-wrapper = pkgs.stdenv.cc;
+      cc-wrapper = stdenv.cc;
       cc-unwrapped = cc-wrapper.cc;
       # Compose a set of environment variables to help Bazel detect C++ toolchain.
       ccEnv = lib.optionalAttrs cc {
@@ -249,10 +246,12 @@ rec {
           ${symlinkDeps deps}
         '';
 
-        buildInputs = [
-          pkgs.bazel
-          pkgs.jdk11_headless
-        ] ++ ccBuildInputs;
+        nativeBuildInputs = [
+          bazel
+          openjdk11_headless
+        ]
+        ++ ccBuildInputs
+        ++ args.nativeBuildInputs or [ ];
         buildPhase = ''
           runHook preBuild
 
@@ -287,6 +286,7 @@ rec {
             "tests"
             "cc"
             "compilationMode"
+            "nativeBuildInputs"
           ]
       )
     )
