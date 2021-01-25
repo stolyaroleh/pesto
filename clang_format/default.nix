@@ -1,4 +1,5 @@
 { runCommand
+, bash
 , clang
 , coreutils
 , diffutils
@@ -14,7 +15,7 @@ let
     runCommand
       "clang_format"
       {
-        inherit clang coreutils diffutils findutils gnused;
+        inherit bash clang coreutils diffutils findutils gnused;
       }
       ''
         mkdir -p $out
