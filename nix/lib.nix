@@ -97,32 +97,48 @@ rec {
   # Given a directory with a C++ project, filter out unimportant files.
   cppSources =
     root:
+    {
+      # Additional directories to exclude.
+      # A list of regular expressions that will be matched on directory name
+      # relative to root.
+      excludeDirs ? [ ]
+      # Print traversed directories during evaluation.
+    , debug ? false
+    }:
     let
       shouldTraverseDir =
         dir:
         let
           base = builtins.baseNameOf dir;
-          blacklisted = [
+          defaultExcludeDirs = [
             # .idea
             # .vscode
-            "\\..*"
+            "(.*/)*\\..*"
             # build directories
             "bazel-.*"
             # created by python test scripts, if any
-            "__pycache__"
+            "(.*/)*__pycache__"
+            # We symlink dependencies here
+            "external"
           ];
+          shouldTraverse =
+            (
+              builtins.all
+                (re: builtins.match "${builtins.toString root}/${re}" dir == null)
+                (defaultExcludeDirs ++ excludeDirs)
+            );
         in
-        builtins.all
-          (re: builtins.match re base == null)
-          blacklisted;
+        if debug && shouldTraverse
+        then builtins.trace "cppSources: ${dir}" shouldTraverse
+        else shouldTraverse;
       fileSuffices = [
         ".h"
         ".cc"
         ".hpp"
         ".cpp"
         ".bzl"
-        "BUILD"
         ".bazelrc"
+        "BUILD"
       ];
       shouldIncludeFile =
         file:
