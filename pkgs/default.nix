@@ -1,7 +1,7 @@
 self: super:
 let
   inherit (self) pkgs;
-  inherit (self.pesto.lib) wrapNixPackage;
+  inherit (self.pesto.lib) wrapBazelPackage wrapNixPackage;
 in
 {
   clang_tidy = pkgs.callPackage ../clang_tidy { };
@@ -92,6 +92,12 @@ in
     name = "protobuf";
     package = pkgs.protobuf;
     buildFile = ./protobuf.bzl;
+  };
+
+  range-v3 = wrapBazelPackage {
+    name = "range-v3";
+    src = pkgs.range-v3.src;
+    buildFile = "BUILD.bazel";
   };
 
   rapidcheck = wrapNixPackage {

@@ -47,10 +47,11 @@ rec {
   wrapBazelPackage =
     { name
     , src
+    , buildFile ? "BUILD"
     , deps ? [ ]
     }:
     {
-      inherit name deps;
+      inherit name deps buildFile;
       symlink = "ln -nsfv ${src} external/${name}";
     };
 
@@ -72,7 +73,7 @@ rec {
           new_local_repository(
             name = "${pkg.name}",
             path = "./external/${pkg.name}",
-            build_file = "./external/${pkg.name}/BUILD",
+            build_file = "./external/${pkg.name}/${pkg.buildFile or "BUILD"}",
           )
         '';
     in
