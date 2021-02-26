@@ -263,12 +263,13 @@ rec {
           ${symlinkDeps deps}
         '';
 
-        nativeBuildInputs = [
-          bazel
-          openjdk11_headless
-        ]
-        ++ ccBuildInputs
-        ++ args.nativeBuildInputs or [ ];
+        nativeBuildInputs =
+          args.nativeBuildInputs or [ ]
+          ++ ccBuildInputs
+          ++ [
+            bazel
+            openjdk11_headless
+          ];
         buildPhase = ''
           runHook preBuild
 
