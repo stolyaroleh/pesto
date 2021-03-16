@@ -1,17 +1,18 @@
 diff --git a/generate.sh b/generate.sh
-index 49175b7..c12dbe5 100755
+index 49175b7..5cc3259 100755
 --- a/generate.sh
 +++ b/generate.sh
-@@ -91,7 +91,7 @@ readonly QUERY_CMD=(
+@@ -91,7 +91,8 @@ readonly QUERY_CMD=(
    "$BAZEL" query
      --noshow_progress
      --noshow_loading_progress
 -    'kind("cc_(library|binary|test|inc_library|proto_library)", //...) union kind("objc_(library|binary|test)", //...)'
++    --noimplicit_deps
 +    'kind("cc_(library|binary|test|inc_library|proto_library)", deps(//...)) union kind("objc_(library|binary|test)", deps(//...))'
  )
  
  # Clean any previously generated files.
-@@ -120,8 +120,6 @@ sed -i.bak -e x -e '$ {s/,$//;p;x;}' -e 1d "${COMPDB_FILE}"
+@@ -120,8 +121,6 @@ sed -i.bak -e x -e '$ {s/,$//;p;x;}' -e 1d "${COMPDB_FILE}"
  
  if (( source_dir )); then
    sed -i.bak -e "s|__EXEC_ROOT__|${WORKSPACE}|" "${COMPDB_FILE}"  # Replace exec_root marker
