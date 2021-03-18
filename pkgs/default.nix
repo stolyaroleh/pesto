@@ -8,6 +8,12 @@ in
 
   clang_format = pkgs.callPackage ../clang_format { };
 
+  abseil = wrapBazelPackage {
+    name = "abseil";
+    src = pkgs.abseil-cpp.src;
+    buildFile = "BUILD.bazel";
+  };
+
   backward = wrapNixPackage {
     name = "backward";
     package = pkgs.backward-cpp;
