@@ -281,7 +281,7 @@ rec {
         checkPhase = ''
           runHook preCheck
 
-          bazel test ${ccFlags} ${lib.concatStringsSep " " tests}
+          bazel test ${ccFlags} --test_output=errors ${lib.concatStringsSep " " tests}
 
           runHook postCheck
         '';
