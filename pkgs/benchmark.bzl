@@ -5,6 +5,7 @@ cc_library(
     hdrs = glob(["include/benchmark/*.h"]),
     srcs = ["lib/libbenchmark.a"],
     includes = ["include"],
+    linkopts = ["-lpthread"],
 )
 
 cc_library(
