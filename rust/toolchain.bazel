@@ -1,0 +1,112 @@
+load("@rules_rust//rust:toolchain.bzl", "rust_stdlib_filegroup", "rust_toolchain")
+
+filegroup(
+    name = "rustc",
+    srcs = ["bin/rustc"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "rustc_lib",
+    srcs = glob(
+        [
+            "bin/*.so",
+            "lib/*.so",
+            "lib/rustlib/x86_64-unknown-linux-gnu/codegen-backends/*.so",
+            "lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld",
+            "lib/rustlib/x86_64-unknown-linux-gnu/lib/*.so",
+        ],
+        allow_empty = True,
+    ),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "rustc_srcs",
+    srcs = glob(
+        [
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "rustdoc",
+    srcs = ["bin/rustdoc"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "clippy_driver_bin",
+    srcs = ["bin/clippy-driver"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "cargo",
+    srcs = ["bin/cargo"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "rustfmt_bin",
+    srcs = ["bin/rustfmt"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "rustfmt",
+    srcs = [":rustfmt_bin"],
+    visibility = ["//visibility:public"],
+)
+
+rust_stdlib_filegroup(
+    name = "rust_lib-x86_64-unknown-linux-gnu",
+    srcs = glob(
+        [
+            "lib/rustlib/x86_64-unknown-linux-gnu/lib/*.rlib",
+            "lib/rustlib/x86_64-unknown-linux-gnu/lib/*.so",
+            "lib/rustlib/x86_64-unknown-linux-gnu/lib/*.a",
+            "lib/rustlib/x86_64-unknown-linux-gnu/lib/self-contained/**",
+        ],
+        # Some patterns (e.g. `lib/*.a`) don't match anything, see https://github.com/bazelbuild/rules_rust/pull/245
+        allow_empty = True,
+    ),
+    visibility = ["//visibility:public"],
+)
+
+rust_toolchain(
+    name = "x86_64-unknown-linux-gnu_impl",
+    binary_ext = "",
+    cargo = ":cargo",
+    clippy_driver = ":clippy_driver_bin",
+    default_edition = "2018",
+    dylib_ext = ".so",
+    exec_triple = "x86_64-unknown-linux-gnu",
+    os = "linux",
+    rust_doc = ":rustdoc",
+    rust_lib = ":rust_lib-x86_64-unknown-linux-gnu",
+    rustc = ":rustc",
+    rustc_lib = ":rustc_lib",
+    rustc_srcs = ":rustc_srcs",
+    rustfmt = ":rustfmt_bin",
+    staticlib_ext = ".a",
+    stdlib_linkflags = [
+        "-ldl",
+        "-lpthread",
+    ],
+    target_triple = "x86_64-unknown-linux-gnu",
+    visibility = ["//visibility:public"],
+)
+
+toolchain(
+    name = "x86_64-unknown-linux-gnu",
+    exec_compatible_with = [
+        "@platforms//cpu:x86_64",
+    ],
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = ":x86_64-unknown-linux-gnu_impl",
+    toolchain_type = "@rules_rust//rust:toolchain",
+)

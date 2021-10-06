@@ -1,0 +1,37 @@
+diff --git a/generate.py b/generate.py
+index 3e3ae51..61e8500 100755
+--- a/generate.py
++++ b/generate.py
+@@ -82,7 +82,7 @@ if __name__ == "__main__":
+              'union kind("objc_(library|binary|test)", {query_expr})').format(
+                  query_expr=args.query_expr)
+     query_cmd = [_BAZEL, 'query']
+-    query_cmd.extend(['--noshow_progress', '--noshow_loading_progress', '--output=label'])
++    query_cmd.extend(['--noshow_progress', '--noshow_loading_progress', '--noimplicit_deps', '--output=label'])
+     query_cmd.append(query)
+ 
+     targets_file = tempfile.NamedTemporaryFile()
+@@ -123,23 +123,3 @@ if __name__ == "__main__":
+ 
+     with open(compdb_file, 'w') as outdb:
+         json.dump(db_entries, outdb, indent=2)
+-
+-    if args.source_dir:
+-        link_name = os.path.join(bazel_workspace, 'external')
+-        try:
+-            os.remove(link_name)
+-        except FileNotFoundError:
+-            pass
+-        # This is for libclang to help find source files from external repositories.
+-        os.symlink(os.path.join(bazel_exec_root, 'external'),
+-                   link_name,
+-                   target_is_directory=True)
+-    else:
+-        # This is for YCM to help find the DB when following generated files.
+-        # The file may be deleted by bazel on the next build.
+-        link_name = os.path.join(bazel_exec_root, "compile_commands.json")
+-        try:
+-            os.remove(link_name)
+-        except FileNotFoundError:
+-            pass
+-        os.symlink(compdb_file, link_name)

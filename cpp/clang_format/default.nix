@@ -1,4 +1,7 @@
 { runCommand
+
+, pesto
+
 , bash
 , clang
 , coreutils
@@ -32,4 +35,5 @@ rec {
   inherit src;
   deps = [ ];
   symlink = "ln -nsfv ${src} external/${name}";
+  workspace = pesto.lib.newLocalRepository name "BUILD";
 }

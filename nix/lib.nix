@@ -1,5 +1,30 @@
-{ lib, pkgs, bazel, openjdk11_headless, stdenv }:
+{ lib
+, pkgs
+
+, bazel
+, openjdk11_headless
+
+, ccEnv
+, rustEnv
+}:
 rec {
+  # A section in WORKSPACE that imports a package using new_local_repository
+  newLocalRepository =
+    name: buildFile:
+    ''
+      new_local_repository(
+        name = "${name}",
+        path = "./external/${name}",
+        build_file = "./external/${name}/${buildFile}",
+      )
+    '';
+
+  registerToolchains =
+    labels:
+    ''
+      register_toolchains(${lib.concatStringsSep ", " (map (x: ''"${x}"'') labels)})
+    '';
+
   # Combine a Nix package with a BUILD file describing its contents,
   # to use with https://docs.bazel.build/versions/master/be/workspace.html#local_repository.
   wrapNixPackage =
@@ -7,6 +32,7 @@ rec {
     , buildFile
     , deps ? [ ]
     , name ? package.pname or package.name
+    , extraWorkspace ? null
     }:
     let
       outputPaths = builtins.map (output: package.${output}) package.outputs;
@@ -41,18 +67,23 @@ rec {
     {
       inherit name deps;
       symlink = "ln -nsfv ${combinedOutputs} external/${name}";
+      workspace = (
+        newLocalRepository name "BUILD" +
+        lib.optionalString (extraWorkspace != null) extraWorkspace
+      );
     };
 
   # Wrap an existing Bazel project.
   wrapBazelPackage =
     { name
     , src
-    , buildFile ? "BUILD"
+    , buildFileName ? "BUILD"
     , deps ? [ ]
     }:
     {
-      inherit name deps buildFile;
+      inherit name deps;
       symlink = "ln -nsfv ${src} external/${name}";
+      workspace = newLocalRepository name buildFileName;
     };
 
   # Collect the transitive closure of all external repositories for a given project.
@@ -67,25 +98,15 @@ rec {
   # Given a list of wrapped packages, generate a WORKSPACE file
   # referencing them.
   generateWorkspace = deps:
-    let
-      localRepository =
-        pkg: ''
-          new_local_repository(
-            name = "${pkg.name}",
-            path = "./external/${pkg.name}",
-            build_file = "./external/${pkg.name}/${pkg.buildFile or "BUILD"}",
-          )
-        '';
-    in
-    lib.concatMapStringsSep "\n" localRepository deps;
+    lib.concatMapStringsSep "\n" (pkg: pkg.workspace) deps;
 
   # Symlink all external repositories and a WORKSPACE file that references them.
-  symlinkDeps = deps:
+  symlinkDeps = deps: extraWorkspace:
     let
       allDeps = (lib.concatMap transitiveClosure deps) ++ deps;
       workspaceFile = pkgs.writeTextFile {
         name = "WORKSPACE";
-        text = generateWorkspace allDeps;
+        text = generateWorkspace allDeps + extraWorkspace;
       };
     in
     ''
@@ -161,87 +182,14 @@ rec {
     , tests ? [ ]
 
     , compilationMode ? "opt"
-    , cc ? true
+    , cc ? false
+    , rust ? false
+
+    , extraWorkspace ? ""
 
     , ...
     }@args:
     let
-      # Given a file, read words from it by splitting on whitespace
-      readWords = f:
-        let
-          rawFlags = builtins.readFile f;
-          matches = builtins.split "[[:space:]]+" rawFlags;
-          flags = builtins.filter
-            (
-              x:
-              !(builtins.isList x) &&
-              x != ""
-            )
-            matches;
-        in
-        flags;
-      # Given a file with compiler flags that lives in ${cc-wrapper}/nix-support,
-      # parse flags and join them with ":" to pass it to Bazel as an
-      # environment variable.
-      readFlags = fs:
-        lib.concatStringsSep ":" (builtins.concatMap readWords fs);
-      # Given a file with propagated build inputs that lives in ${cc-wrapper}/nix-support,
-      # parse libraries and join them with ":" to pass them to Bazel.
-      readLibs = fs:
-        let libs = builtins.concatMap readWords fs;
-        in
-        lib.concatStringsSep ":"
-          (
-            map
-              # Ensure that toolchain libraries (libc++, libunwind, etc) are added to RPATH,
-              # so that resulting executables know how to run themselves.
-              (x: "-L${x}/lib:-rpath:${x}/lib")
-              libs
-          );
-      # Return a list of files in a given directory.
-      getFiles = dir:
-        lib.remove null (
-          lib.mapAttrsToList
-            (name: type: if type == "regular" then "${dir}/${name}" else null)
-            (builtins.readDir dir)
-        );
-      # Find files that end with given suffices in a given directory.
-      findFiles = dir: suffices:
-        builtins.filter
-          (name: builtins.any (suffix: lib.hasSuffix suffix name) suffices)
-          (getFiles dir);
-
-      cc-wrapper = stdenv.cc;
-      cc-unwrapped = cc-wrapper.cc;
-      # Compose a set of environment variables to help Bazel detect C++ toolchain.
-      ccEnv = lib.optionalAttrs cc {
-        # The following environment variables control Bazel C++ toolchain detection.
-        CC =
-          if cc-wrapper.isClang
-          then "${cc-wrapper}/bin/clang++"
-          else "${cc-wrapper}/bin/g++";
-        BAZEL_CXXOPTS = (
-          readFlags (
-            findFiles "${cc-wrapper}/nix-support" [ "cflags" "cxxflags" ]
-          )
-        ) + ":-Wno-unused-command-line-argument";
-        BAZEL_LINKOPTS = (
-          readFlags (
-            findFiles "${cc-wrapper}/nix-support" [ "cflags" "cxxflags" "ldflags" ]
-          )
-        ) + ":" + (
-          readLibs (
-            findFiles "${cc-wrapper}/nix-support" [ "propagated-target-target-deps" ]
-          )
-        );
-      };
-      ccBuildInputs = lib.optionals cc ([
-        cc-wrapper
-      ]);
-      ccFlags = lib.concatStringsSep " " [
-        "--compilation_mode=${compilationMode}"
-      ];
-
       labelToPath =
         label:
         builtins.replaceStrings [ "//" ":" ] [ "" "/" ] label;
@@ -255,17 +203,48 @@ rec {
           mkdir -p $out/bin/${dir}
           cp $bazelbin/${path} $out/bin/${dir}
         '';
+
+      needCC = cc || rust;
+      needRust = rust;
+
+      exportEnvVars =
+        let
+          envVars = (
+            (lib.optionalAttrs needCC ccEnv.env) //
+            (lib.optionalAttrs needRust rustEnv.env)
+          );
+          export = name: value: "export ${name}=${value}";
+          exports = lib.mapAttrsToList export envVars;
+        in
+        lib.concatStringsSep "\n" exports;
+
+      bazelFlags = lib.concatStringsSep " " (
+        lib.optionals needCC ccEnv.flags or [ ] ++
+        lib.optionals needRust rustEnv.flags or [ ] ++
+        [ "--compilation_mode=${compilationMode}" ]
+      );
+
+
+      setupProject = symlinkDeps
+        (
+          lib.optionals needCC ccEnv.deps or [ ] ++
+          lib.optionals needRust rustEnv.deps or [ ] ++
+          deps
+        )
+        extraWorkspace;
     in
     pkgs.stdenvNoCC.mkDerivation (
       {
         preBuild = ''
           export HOME=/tmp
-          ${symlinkDeps deps}
+          ${setupProject}
+          ${exportEnvVars}
         '';
 
         nativeBuildInputs =
           args.nativeBuildInputs or [ ]
-          ++ ccBuildInputs
+          ++ lib.optionals needCC ccEnv.nativeBuildInputs or [ ]
+          ++ lib.optionals needRust rustEnv.nativeBuildInputs or [ ]
           ++ [
             bazel
             openjdk11_headless
@@ -273,7 +252,7 @@ rec {
         buildPhase = ''
           runHook preBuild
 
-          bazel build ${ccFlags} ${lib.concatStringsSep " " (binaries ++ tests)}
+          bazel build ${bazelFlags} ${lib.concatStringsSep " " (binaries ++ tests)}
 
           runHook postBuild
         '';
@@ -281,7 +260,7 @@ rec {
         checkPhase = ''
           runHook preCheck
 
-          bazel test ${ccFlags} --test_output=errors ${lib.concatStringsSep " " tests}
+          bazel test ${bazelFlags} --test_output=errors ${lib.concatStringsSep " " tests}
 
           runHook postCheck
         '';
@@ -289,13 +268,16 @@ rec {
           runHook preInstall
 
           mkdir -p $out/bin
-          bazelbin=$(bazel info ${ccFlags} bazel-bin)
+          bazelbin=$(bazel info ${bazelFlags} bazel-bin)
           ${lib.concatMapStringsSep "\n" installLabel binaries}
 
           runHook postInstall
         '';
-        shellHook = symlinkDeps deps;
-      } // (lib.optionalAttrs cc ccEnv) // (
+        shellHook = ''
+          ${setupProject}
+          ${exportEnvVars}
+        '';
+      } // (
         builtins.removeAttrs
           args
           [

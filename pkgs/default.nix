@@ -2,16 +2,33 @@ self: super:
 let
   inherit (self) pkgs;
   inherit (self.pesto.lib) wrapBazelPackage wrapNixPackage;
+  sources = import ../nix/sources.nix { };
 in
 {
-  clang_tidy = pkgs.callPackage ../clang_tidy { };
+  clang_tidy = pkgs.callPackage ../cpp/clang_tidy { };
 
-  clang_format = pkgs.callPackage ../clang_format { };
+  clang_format = pkgs.callPackage ../cpp/clang_format { };
+
+  rust_toolchain = pkgs.callPackage ../rust/toolchain.nix { };
 
   abseil = wrapBazelPackage {
     name = "abseil";
     src = pkgs.abseil-cpp.src;
-    buildFile = "BUILD.bazel";
+    buildFileName = "BUILD.bazel";
+  };
+
+  bazel_skylib = wrapBazelPackage {
+    name = "bazel_skylib";
+    src = sources.bazel-skylib;
+  };
+
+  rules_rust = wrapBazelPackage {
+    name = "rules_rust";
+    src = sources.rules_rust;
+    deps = [
+      self.bazel_skylib
+    ];
+    buildFileName = "BUILD.bazel";
   };
 
   backward = wrapNixPackage {
@@ -59,7 +76,7 @@ in
 
   fmt = wrapNixPackage {
     name = "fmt";
-    package = pkgs.fmtlib;
+    package = pkgs.fmt;
     buildFile = ./fmt.bzl;
   };
 

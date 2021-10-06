@@ -14,8 +14,7 @@ run() {
 }
 
 log "Writing compile_commands.json..."
-# -s makes it use the original source directory instead of bazel __EXEC_ROOT__
-run @out@/bin/.generate.sh -s
+run @out@/generate.py --source_dir --query_expr="deps(//...)"
 
 absolute_exec_root=$(bazel info execution_root)
 absolute_bin=$(bazel info bazel-bin)

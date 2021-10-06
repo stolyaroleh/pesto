@@ -1,25 +1,31 @@
 let
   sources = import ./sources.nix;
-  bazel4nixpkgs = import sources.bazel4nixpkgs { };
 in
 self: super:
 let
-  pesto = {
+  pesto = rec {
     tools = {
-      bazel-compdb = super.callPackage ../compilation_database { };
+      bazel-compdb = super.callPackage ../cpp/compilation_database { };
     };
-
-    lib = self.callPackage ./lib.nix { };
-    pkgs = (
+    lib = self.callPackage ./lib.nix {
+      ccEnv = self.callPackage ../cpp {
+        inherit bazelPkgs;
+        inherit (tools) bazel-compdb;
+      };
+      rustEnv = self.callPackage ../rust {
+        inherit bazelPkgs;
+      };
+    };
+    bazelPkgs = (
       super.lib.makeExtensible (_: {
         inherit pesto;
         inherit (self) pkgs;
       })
     ).extend (import ../pkgs);
   };
+
 in
 {
   inherit pesto;
-  inherit (bazel4nixpkgs) openjdk11_headless;
-  bazel = bazel4nixpkgs.bazel_4;
+  bazel = super.bazel_4;
 }
