@@ -187,6 +187,8 @@ rec {
 
     , extraWorkspace ? ""
 
+    , extraPreBuild ? ""
+
     , ...
     }@args:
     let
@@ -239,6 +241,7 @@ rec {
           export HOME=/tmp
           ${setupProject}
           ${exportEnvVars}
+          ${extraPreBuild}
         '';
 
         nativeBuildInputs =
